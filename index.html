@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>DealHunter AI</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --card: #1c1c27;
+    --border: #2a2a3d;
+    --accent: #ff6b35;
+    --accent2: #ffd23f;
+    --green: #00d68f;
+    --text: #f0f0f8;
+    --muted: #8888aa;
+    --radius: 16px;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Header ── */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,15,0.92);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    flex: 1;
+  }
+
+  .logo span { font-size: 14px; }
+
+  /* ── Search ── */
+  .search-wrap {
+    display: flex; gap: 8px;
+    position: relative;
+  }
+
+  .search-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px 12px 42px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--muted); }
+
+  .search-icon {
+    position: absolute; left: 14px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px; pointer-events: none;
+  }
+
+  .search-btn {
+    background: var(--accent);
+    border: none; border-radius: 12px;
+    padding: 0 18px;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+
+  .search-btn:active { transform: scale(0.97); opacity: 0.85; }
+
+  /* ── Category Chips ── */
+  .chips-wrap {
+    display: flex; gap: 8px;
+    padding: 12px 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .chips-wrap::-webkit-scrollbar { display: none; }
+
+  .chip {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 100px;
+    padding: 6px 14px;
+    font-size: 13px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--muted);
+  }
+
+  .chip.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  /* ── Stats Banner ── */
+  .stats-banner {
+    display: grid; grid-template-columns: repeat(3,1fr);
+    gap: 8px; padding: 0 16px 12px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    text-align: center;
+  }
+
+  .stat-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px; font-weight: 700;
+    color: var(--accent2);
+  }
+
+  .stat-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* ── Section Title ── */
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px; font-weight: 700;
+    padding: 0 16px 10px;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  /* ── Deal Cards ── */
+  .deals-grid {
+    display: flex; flex-direction: column;
+    gap: 10px; padding: 0 16px 80px;
+  }
+
+  .deal-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+    animation: fadeUp 0.4s ease both;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .deal-card:active { transform: scale(0.98); }
+  .deal-card:hover  { border-color: var(--accent); }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform: translateY(16px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+
+  .deal-img {
+    width: 84px; height: 84px;
+    border-radius: 10px;
+    object-fit: contain;
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+
+  .deal-info { flex: 1; min-width: 0; }
+
+  .deal-title {
+    font-size: 13px; font-weight: 500;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+
+  .deal-pricing {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 5px;
+  }
+
+  .deal-price {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px; font-weight: 700;
+    color: var(--green);
+  }
+
+  .deal-original {
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: line-through;
+  }
+
+  .deal-badge {
+    background: var(--accent);
+    color: white;
+    font-size: 11px; font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 6px;
+    margin-left: auto;
+  }
+
+  .deal-meta {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--muted);
+  }
+
+  .ai-score {
+    display: flex; align-items: center; gap: 4px;
+    background: rgba(255,210,63,0.12);
+    border: 1px solid rgba(255,210,63,0.25);
+    border-radius: 6px;
+    padding: 2px 7px;
+    color: var(--accent2);
+    font-size: 11px; font-weight: 600;
+  }
+
+  .deal-summary {
+    font-size: 11px; color: var(--muted);
+    margin-top: 4px; line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ── Loading ── */
+  .loading {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 48px 16px; gap: 16px;
+  }
+
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text { color: var(--muted); font-size: 14px; }
+
+  /* ── Empty / Error ── */
+  .empty {
+    text-align: center; padding: 48px 16px;
+  }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-title { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; margin-bottom:6px; }
+  .empty-sub { color: var(--muted); font-size: 14px; }
+
+  /* ── Bottom Bar ── */
+  .bottom-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(10,10,15,0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 8px 16px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    gap: 8px;
+  }
+
+  .nav-btn {
+    flex: 1; background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 6px;
+    color: var(--muted);
+    font-size: 11px;
+    cursor: pointer;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 3px;
+    transition: all 0.2s;
+  }
+
+  .nav-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+  .nav-btn span:first-child { font-size: 18px; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+    background: var(--green); color: #000;
+    font-weight: 600; font-size: 13px;
+    padding: 10px 20px; border-radius: 100px;
+    opacity: 0; transition: opacity 0.3s;
+    pointer-events: none; white-space: nowrap;
+    z-index: 999;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="header-inner">
+    <div class="logo">🛍️ DealHunter <span>AI</span></div>
+    <div style="font-size:11px; color:var(--muted);">Powered by AI</div>
+  </div>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input
+      class="search-input"
+      id="searchInput"
+      type="text"
+      placeholder="Search any product..."
+      autocomplete="off"
+    />
+    <button class="search-btn" onclick="doSearch()">Search</button>
+  </div>
+</header>
+
+<!-- Category Chips -->
+<div class="chips-wrap" id="chips">
+  <div class="chip active" onclick="selectChip(this,'All')">🔥 All</div>
+  <div class="chip" onclick="selectChip(this,'Electronics')">💻 Electronics</div>
+  <div class="chip" onclick="selectChip(this,'HomeAndKitchen')">🏠 Home</div>
+  <div class="chip" onclick="selectChip(this,'VideoGames')">🎮 Gaming</div>
+  <div class="chip" onclick="selectChip(this,'Apparel')">👗 Fashion</div>
+  <div class="chip" onclick="selectChip(this,'Beauty')">💄 Beauty</div>
+  <div class="chip" onclick="selectChip(this,'Books')">📚 Books</div>
+  <div class="chip" onclick="selectChip(this,'SportingGoods')">⚽ Sports</div>
+</div>
+
+<!-- Main Content -->
+<main id="mainContent">
+
+  <!-- Stats Banner -->
+  <div class="stats-banner">
+    <div class="stat-card">
+      <div class="stat-value" id="statDeals">—</div>
+      <div class="stat-label">Deals Found</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statSavings">—</div>
+      <div class="stat-label">Avg. Discount</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statTop">—</div>
+      <div class="stat-label">Top Deal</div>
+    </div>
+  </div>
+
+  <div class="section-title">
+    <span>🤖</span> AI-Ranked Deals
+  </div>
+
+  <!-- Deals Container -->
+  <div class="deals-grid" id="dealsGrid">
+    <div class="loading">
+      <div class="spinner"></div>
+      <div class="loading-text">Finding best deals for you...</div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Bottom Navigation -->
+<div class="bottom-bar">
+  <button class="nav-btn active" id="navDeals" onclick="switchTab('deals')">
+    <span>🔥</span><span>Deals</span>
+  </button>
+  <button class="nav-btn" id="navSearch" onclick="switchTab('search')">
+    <span>🔍</span><span>Search</span>
+  </button>
+  <button class="nav-btn" id="navAlerts" onclick="switchTab('alerts')">
+    <span>🔔</span><span>Alerts</span>
+  </button>
+  <button class="nav-btn" id="navInfo" onclick="switchTab('info')">
+    <span>❓</span><span>How It Works</span>
+  </button>
+</div>
+
+<!-- Toast Notification -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── Config ──────────────────────────────────────────────────────────────────
+const BACKEND = 'http://localhost:8000'; // Change to your deployed URL
+let currentCategory = 'All';
+let currentTab = 'deals';
+
+// ─── Telegram WebApp Init ─────────────────────────────────────────────────────
+const tg = window.Telegram?.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand();
+  tg.setHeaderColor('#0a0a0f');
+  tg.setBackgroundColor('#0a0a0f');
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const q      = params.get('q');
+  const cat    = params.get('category');
+
+  if (q) {
+    document.getElementById('searchInput').value = q;
+    loadDeals(q, currentCategory);
+  } else if (cat === 'hot' || cat === 'flash') {
+    loadHotDeals();
+  } else {
+    loadHotDeals();
+  }
+
+  // Search on Enter
+  document.getElementById('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doSearch();
+  });
+});
+
+// ─── Load Hot Deals ───────────────────────────────────────────────────────────
+async function loadHotDeals() {
+  showLoading();
+  try {
+    const res   = await fetch(`${BACKEND}/hot-deals`);
+    const data  = await res.json();
+    renderDeals(data.deals || []);
+  } catch {
+    // If backend not reachable, show mock
+    renderDeals(getMockDeals());
+  }
+}
+
+// ─── Search ───────────────────────────────────────────────────────────────────
+function doSearch() {
+  const q = document.getElementById('searchInput').value.trim();
+  if (!q) return;
+  loadDeals(q, currentCategory);
+}
+
+async function loadDeals(query, category = 'All') {
+  showLoading();
+  try {
+    const url  = `${BACKEND}/search?q=${encodeURIComponent(query)}&category=${category}&limit=15`;
+    const res  = await fetch(url);
+    const data = await res.json();
+    renderDeals(data.deals || []);
+  } catch {
+    renderDeals(getMockDeals(query));
+  }
+}
+
+// ─── Render Deals ─────────────────────────────────────────────────────────────
+function renderDeals(deals) {
+  const grid = document.getElementById('dealsGrid');
+
+  if (!deals || deals.length === 0) {
+    grid.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-title">No Deals Found</div>
+        <div class="empty-sub">Try a different search term or category</div>
+      </div>`;
+    return;
+  }
+
+  // Update stats
+  const avgDiscount = Math.round(deals.reduce((s,d) => s + (d.discount_percent||0), 0) / deals.length);
+  const topDeal     = Math.max(...deals.map(d => d.discount_percent || 0));
+  document.getElementById('statDeals').textContent    = deals.length;
+  document.getElementById('statSavings').textContent  = `${avgDiscount}%`;
+  document.getElementById('statTop').textContent      = `${topDeal}%`;
+
+  grid.innerHTML = deals.map((deal, i) => `
+    <a class="deal-card" href="${deal.affiliate_url}" target="_blank"
+       style="animation-delay:${i * 0.06}s"
+       onclick="trackClick('${deal.asin}')">
+      <img class="deal-img"
+           src="${deal.image_url || 'https://via.placeholder.com/84x84?text=📦'}"
+           alt="${deal.title}"
+           onerror="this.src='https://via.placeholder.com/84x84?text=📦'">
+      <div class="deal-info">
+        <div class="deal-title">${deal.title}</div>
+        <div class="deal-pricing">
+          <span class="deal-price">$${Number(deal.price).toFixed(2)}</span>
+          ${deal.original_price > deal.price
+            ? `<span class="deal-original">$${Number(deal.original_price).toFixed(2)}</span>`
+            : ''}
+          ${deal.discount_percent
+            ? `<span class="deal-badge">-${deal.discount_percent}%</span>`
+            : ''}
+        </div>
+        <div class="deal-meta">
+          ${deal.rating ? `⭐ ${deal.rating}` : ''}
+          ${deal.review_count ? `(${Number(deal.review_count).toLocaleString()})` : ''}
+          ${deal.ai_score != null
+            ? `<span class="ai-score">🤖 ${Number(deal.ai_score).toFixed(1)}/10</span>`
+            : ''}
+        </div>
+        ${deal.ai_summary
+          ? `<div class="deal-summary">${deal.ai_summary}</div>`
+          : ''}
+      </div>
+    </a>
+  `).join('');
+}
+
+// ─── Helper Functions ─────────────────────────────────────────────────────────
+function showLoading() {
+  document.getElementById('dealsGrid').innerHTML = `
+    <div class="loading">
+      <div class="spinner"></div>
+      <div class="loading-text">AI is analyzing deals...</div>
+    </div>`;
+  document.getElementById('statDeals').textContent   = '—';
+  document.getElementById('statSavings').textContent = '—';
+  document.getElementById('statTop').textContent     = '—';
+}
+
+function selectChip(el, category) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  currentCategory = category;
+  const q = document.getElementById('searchInput').value.trim();
+  if (q) loadDeals(q, category); else loadHotDeals();
+}
+
+function trackClick(asin) {
+  showToast('Opening deal... 🛒');
+  // Could send analytics to backend here
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`nav${tab.charAt(0).toUpperCase()+tab.slice(1)}`).classList.add('active');
+
+  if (tab === 'deals')  loadHotDeals();
+  if (tab === 'search') document.getElementById('searchInput').focus();
+  if (tab === 'alerts') showToast('Set alerts via the bot! 🔔');
+  if (tab === 'info')   showInfoModal();
+}
+
+function showInfoModal() {
+  document.getElementById('dealsGrid').innerHTML = `
+    <div class="empty">
+      <div class="empty-icon">🤖</div>
+      <div class="empty-title">How DealHunter AI Works</div>
+      <div class="empty-sub" style="margin-top:12px; line-height:1.8; text-align:left; padding: 0 8px;">
+        1️⃣ We scan thousands of Amazon products daily<br>
+        2️⃣ Our AI scores each deal on discount, reviews & value<br>
+        3️⃣ You see only the best, ranked by AI Score<br>
+        4️⃣ Click any deal to buy on Amazon instantly<br>
+        5️⃣ Set price alerts via the bot to never miss a drop<br><br>
+        <strong style="color:var(--accent2)">Completely free!</strong> — We earn a small Amazon affiliate commission when you buy.
+      </div>
+    </div>`;
+}
+
+// ─── Mock Data (Fallback) ─────────────────────────────────────────────────────
+function getMockDeals(query = 'popular') {
+  const items = [
+    { asin:'B001', title:'Wireless Noise-Canceling Headphones - Premium Sound Quality', price:49.99, original_price:99.99, discount_percent:50, rating:4.6, review_count:23451, image_url:'', ai_score:9.2, ai_summary:'Exceptional value — premium ANC at half price with stellar reviews.' },
+    { asin:'B002', title:'Smart LED Desk Lamp with USB Charging Port - Adjustable', price:24.99, original_price:44.99, discount_percent:44, rating:4.4, review_count:8923, image_url:'', ai_score:8.1, ai_summary:'Great everyday item with solid discount and high satisfaction rate.' },
+    { asin:'B003', title:'Portable Bluetooth Speaker Waterproof 360° Sound', price:34.99, original_price:59.99, discount_percent:42, rating:4.5, review_count:15670, image_url:'', ai_score:8.7, ai_summary:'Top-rated portable speaker — waterproof feature adds excellent value.' },
+    { asin:'B004', title:'Air Fryer 6QT Large Capacity Digital Touch Screen', price:79.99, original_price:139.99, discount_percent:43, rating:4.7, review_count:31200, image_url:'', ai_score:9.4, ai_summary:'Best-in-class air fryer at a record low price — highest rated in category.' },
+    { asin:'B005', title:'Fitness Tracker Smart Watch with Heart Rate Monitor', price:39.99, original_price:69.99, discount_percent:43, rating:4.3, review_count:9876, image_url:'', ai_score:7.9, ai_summary:'Solid budget fitness tracker with reliable heart rate monitoring.' },
+  ];
+  return items.map(d => ({ ...d, affiliate_url: `https://www.amazon.com/dp/${d.asin}?tag=demo-20` }));
+}
+</script>
+</body>
+</html>
