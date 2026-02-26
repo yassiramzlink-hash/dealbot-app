@@ -412,7 +412,7 @@
 
 <script>
 // ─── Config ──────────────────────────────────────────────────────────────────
-const BACKEND = 'https://web-production-8d6c4.up.railway.app'; // Change to your deployed URL
+const BACKEND = 'https://web-production-8d6c4.up.railway.app';
 let currentCategory = 'All';
 let currentTab = 'deals';
 
@@ -519,6 +519,8 @@ function renderDeals(deals) {
             : ''}
         </div>
         <div class="deal-meta">
+          ${deal.is_price_error ? '<span style="color:#e74c3c;font-weight:700">🔥 PRICE ERROR</span>' : ''}
+          ${deal.is_prime ? '<span style="color:#00a8e1;font-size:11px">✦ PRIME</span>' : ''}
           ${deal.rating ? `⭐ ${deal.rating}` : ''}
           ${deal.review_count ? `(${Number(deal.review_count).toLocaleString()})` : ''}
           ${deal.ai_score != null
