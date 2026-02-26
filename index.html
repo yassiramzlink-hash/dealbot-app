@@ -3,608 +3,620 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>DealHunter AI</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<title>DealHunter — USA Deals</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+:root {
+  --bg: #0a0a0f;
+  --surface: #13131a;
+  --card: #1a1a24;
+  --border: #2a2a38;
+  --accent: #ff4d00;
+  --accent2: #ff9500;
+  --gold: #ffd700;
+  --text: #f0f0f5;
+  --muted: #6b6b80;
+  --prime: #00b4d8;
+  --error: #ff2d55;
+  --green: #00d68f;
+  --r: 14px;
+}
 
-  :root {
-    --bg: #0a0a0f;
-    --surface: #13131a;
-    --card: #1c1c27;
-    --border: #2a2a3d;
-    --accent: #ff6b35;
-    --accent2: #ffd23f;
-    --green: #00d68f;
-    --text: #f0f0f8;
-    --muted: #8888aa;
-    --radius: 16px;
-  }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-  * { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
 
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+/* ── Header ── */
+.header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(10,10,15,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+}
+.header-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800; font-size: 20px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+.header-badge {
+  font-size: 11px; color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 3px 8px; border-radius: 20px;
+}
 
-  /* ── Header ── */
-  header {
-    position: sticky; top: 0; z-index: 100;
-    background: rgba(10,10,15,0.92);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--border);
-    padding: 12px 16px;
-  }
+/* ── Search ── */
+.search-wrap { position: relative; }
+.search-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 38px 10px 14px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color .2s;
+}
+.search-input::placeholder { color: var(--muted); }
+.search-input:focus { border-color: var(--accent); }
+.search-icon {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--muted); font-size: 16px; cursor: pointer;
+  transition: color .2s;
+}
+.search-icon:hover { color: var(--accent); }
 
-  .header-inner {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-  }
+/* ── Pages ── */
+.page { display: none; padding: 16px; }
+.page.active { display: block; }
 
-  .logo {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 20px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    flex: 1;
-  }
+/* ── Section Title ── */
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px; font-weight: 700;
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-title span { color: var(--muted); font-size: 13px; font-weight: 400; font-family: 'DM Sans', sans-serif; }
 
-  .logo span { font-size: 14px; }
+/* ── Category Grid ── */
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.cat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s;
+  position: relative; overflow: hidden;
+}
+.cat-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, transparent 60%, var(--cat-color, var(--accent)) 200%);
+  opacity: 0; transition: opacity .3s;
+}
+.cat-card:hover::before, .cat-card.active::before { opacity: 1; }
+.cat-card.active {
+  border-color: var(--cat-color, var(--accent));
+  box-shadow: 0 0 0 1px var(--cat-color, var(--accent));
+}
+.cat-icon { font-size: 28px; margin-bottom: 6px; display: block; }
+.cat-name {
+  font-size: 11px; font-weight: 500;
+  color: var(--muted);
+  line-height: 1.2;
+}
+.cat-card.active .cat-name { color: var(--text); }
+.cat-count {
+  position: absolute; top: 6px; right: 6px;
+  font-size: 10px; font-weight: 700;
+  background: var(--accent); color: white;
+  border-radius: 10px; padding: 1px 5px;
+  min-width: 18px; text-align: center;
+}
 
-  /* ── Search ── */
-  .search-wrap {
-    display: flex; gap: 8px;
-    position: relative;
-  }
+/* ── Hot Deals Banner ── */
+.hot-banner {
+  background: linear-gradient(135deg, #1a0800, #2d1000);
+  border: 1px solid #4a2000;
+  border-radius: var(--r);
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer;
+  transition: transform .2s;
+}
+.hot-banner:active { transform: scale(0.98); }
+.hot-banner-icon { font-size: 32px; }
+.hot-banner-text h3 {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px; font-weight: 700;
+  color: var(--accent2);
+}
+.hot-banner-text p { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.hot-banner-arrow { margin-left: auto; color: var(--accent2); font-size: 20px; }
 
-  .search-input {
-    flex: 1;
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 12px;
-    padding: 12px 16px 12px 42px;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
+/* ── Deal Cards ── */
+.deals-grid { display: flex; flex-direction: column; gap: 10px; }
 
-  .search-input:focus { border-color: var(--accent); }
-  .search-input::placeholder { color: var(--muted); }
+.deal-card {
+  display: flex; gap: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 12px;
+  text-decoration: none; color: inherit;
+  transition: all .2s;
+  position: relative; overflow: hidden;
+  animation: fadeUp .3s ease both;
+}
+.deal-card:active { transform: scale(0.98); border-color: var(--accent); }
 
-  .search-icon {
-    position: absolute; left: 14px; top: 50%;
-    transform: translateY(-50%);
-    font-size: 16px; pointer-events: none;
-  }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
-  .search-btn {
-    background: var(--accent);
-    border: none; border-radius: 12px;
-    padding: 0 18px;
-    color: white;
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: opacity 0.2s, transform 0.1s;
-  }
+.deal-img-wrap {
+  flex-shrink: 0;
+  width: 80px; height: 80px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface);
+  display: flex; align-items: center; justify-content: center;
+}
+.deal-img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.deal-img-placeholder { font-size: 32px; }
 
-  .search-btn:active { transform: scale(0.97); opacity: 0.85; }
+.deal-body { flex: 1; min-width: 0; }
+.deal-badges { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 5px; }
+.badge {
+  font-size: 10px; font-weight: 700;
+  padding: 2px 7px; border-radius: 20px;
+}
+.badge-error { background: var(--error); color: white; }
+.badge-prime { background: rgba(0,180,216,0.15); color: var(--prime); border: 1px solid var(--prime); }
+.badge-cat   { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
 
-  /* ── Category Chips ── */
-  .chips-wrap {
-    display: flex; gap: 8px;
-    padding: 12px 16px;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .chips-wrap::-webkit-scrollbar { display: none; }
+.deal-title {
+  font-size: 13px; font-weight: 500; line-height: 1.4;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; margin-bottom: 7px;
+}
+.deal-price-row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.deal-price {
+  font-family: 'Syne', sans-serif;
+  font-size: 17px; font-weight: 700; color: var(--green);
+}
+.deal-original {
+  font-size: 12px; color: var(--muted);
+  text-decoration: line-through;
+}
+.deal-discount {
+  font-size: 11px; font-weight: 700;
+  background: rgba(255,77,0,0.15);
+  color: var(--accent); border: 1px solid rgba(255,77,0,0.3);
+  padding: 1px 6px; border-radius: 20px;
+}
+.deal-meta {
+  font-size: 11px; color: var(--muted);
+  margin-top: 5px; display: flex; align-items: center; gap: 6px;
+}
+.ai-chip {
+  font-size: 10px;
+  background: rgba(255,149,0,0.1);
+  color: var(--accent2); border: 1px solid rgba(255,149,0,0.25);
+  padding: 1px 5px; border-radius: 10px;
+}
 
-  .chip {
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 100px;
-    padding: 6px 14px;
-    font-size: 13px;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: var(--muted);
-  }
+/* ── Loading ── */
+.skeleton { animation: shimmer 1.5s infinite; }
+@keyframes shimmer {
+  0%   { opacity: .4; }
+  50%  { opacity: .8; }
+  100% { opacity: .4; }
+}
+.skel-card {
+  height: 100px;
+  background: var(--card);
+  border-radius: var(--r);
+  margin-bottom: 10px;
+}
 
-  .chip.active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: white;
-  }
+/* ── Empty State ── */
+.empty {
+  text-align: center; padding: 48px 20px;
+  color: var(--muted);
+}
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty h3 { font-family: 'Syne', sans-serif; color: var(--text); margin-bottom: 6px; }
 
-  /* ── Stats Banner ── */
-  .stats-banner {
-    display: grid; grid-template-columns: repeat(3,1fr);
-    gap: 8px; padding: 0 16px 12px;
-  }
+/* ── Back Button ── */
+.back-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: none; border: none;
+  color: var(--muted); font-size: 14px;
+  cursor: pointer; padding: 0; margin-bottom: 16px;
+  font-family: 'DM Sans', sans-serif;
+  transition: color .2s;
+}
+.back-btn:hover { color: var(--text); }
 
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 12px;
-    text-align: center;
-  }
+/* ── Bottom Nav ── */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(10,10,15,0.95);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  gap: 3px; background: none; border: none; cursor: pointer;
+  color: var(--muted); font-size: 10px;
+  font-family: 'DM Sans', sans-serif;
+  transition: color .2s; padding: 4px 0;
+}
+.nav-btn .nav-icon { font-size: 20px; }
+.nav-btn.active { color: var(--accent); }
 
-  .stat-value {
-    font-family: 'Syne', sans-serif;
-    font-size: 20px; font-weight: 700;
-    color: var(--accent2);
-  }
+/* ── Stats Bar ── */
+.stats-bar {
+  display: flex; gap: 8px; margin-bottom: 20px;
+}
+.stat-chip {
+  flex: 1; background: var(--card);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 10px 8px; text-align: center;
+}
+.stat-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px; font-weight: 700;
+  color: var(--accent2);
+}
+.stat-label { font-size: 10px; color: var(--muted); margin-top: 2px; }
 
-  .stat-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+/* ── Price Error Banner ── */
+.error-banner {
+  background: linear-gradient(135deg, #1a0008, #2d000f);
+  border: 1px solid var(--error);
+  border-radius: var(--r);
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px;
+}
+.error-banner strong { color: var(--error); font-family: 'Syne', sans-serif; }
 
-  /* ── Section Title ── */
-  .section-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 16px; font-weight: 700;
-    padding: 0 16px 10px;
-    display: flex; align-items: center; gap: 6px;
-  }
-
-  /* ── Deal Cards ── */
-  .deals-grid {
-    display: flex; flex-direction: column;
-    gap: 10px; padding: 0 16px 80px;
-  }
-
-  .deal-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-    display: flex;
-    gap: 12px;
-    padding: 12px;
-    cursor: pointer;
-    transition: transform 0.15s, border-color 0.15s;
-    animation: fadeUp 0.4s ease both;
-    text-decoration: none;
-    color: inherit;
-  }
-
-  .deal-card:active { transform: scale(0.98); }
-  .deal-card:hover  { border-color: var(--accent); }
-
-  @keyframes fadeUp {
-    from { opacity:0; transform: translateY(16px); }
-    to   { opacity:1; transform: translateY(0); }
-  }
-
-  .deal-img {
-    width: 84px; height: 84px;
-    border-radius: 10px;
-    object-fit: contain;
-    background: var(--surface);
-    flex-shrink: 0;
-  }
-
-  .deal-info { flex: 1; min-width: 0; }
-
-  .deal-title {
-    font-size: 13px; font-weight: 500;
-    line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    margin-bottom: 6px;
-  }
-
-  .deal-pricing {
-    display: flex; align-items: center; gap: 8px;
-    margin-bottom: 5px;
-  }
-
-  .deal-price {
-    font-family: 'Syne', sans-serif;
-    font-size: 18px; font-weight: 700;
-    color: var(--green);
-  }
-
-  .deal-original {
-    font-size: 13px;
-    color: var(--muted);
-    text-decoration: line-through;
-  }
-
-  .deal-badge {
-    background: var(--accent);
-    color: white;
-    font-size: 11px; font-weight: 700;
-    padding: 2px 7px;
-    border-radius: 6px;
-    margin-left: auto;
-  }
-
-  .deal-meta {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 12px; color: var(--muted);
-  }
-
-  .ai-score {
-    display: flex; align-items: center; gap: 4px;
-    background: rgba(255,210,63,0.12);
-    border: 1px solid rgba(255,210,63,0.25);
-    border-radius: 6px;
-    padding: 2px 7px;
-    color: var(--accent2);
-    font-size: 11px; font-weight: 600;
-  }
-
-  .deal-summary {
-    font-size: 11px; color: var(--muted);
-    margin-top: 4px; line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  /* ── Loading ── */
-  .loading {
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    padding: 48px 16px; gap: 16px;
-  }
-
-  .spinner {
-    width: 40px; height: 40px;
-    border: 3px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .loading-text { color: var(--muted); font-size: 14px; }
-
-  /* ── Empty / Error ── */
-  .empty {
-    text-align: center; padding: 48px 16px;
-  }
-  .empty-icon { font-size: 48px; margin-bottom: 12px; }
-  .empty-title { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; margin-bottom:6px; }
-  .empty-sub { color: var(--muted); font-size: 14px; }
-
-  /* ── Bottom Bar ── */
-  .bottom-bar {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    background: rgba(10,10,15,0.95);
-    backdrop-filter: blur(20px);
-    border-top: 1px solid var(--border);
-    display: flex;
-    padding: 8px 16px;
-    padding-bottom: max(8px, env(safe-area-inset-bottom));
-    gap: 8px;
-  }
-
-  .nav-btn {
-    flex: 1; background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 10px 6px;
-    color: var(--muted);
-    font-size: 11px;
-    cursor: pointer;
-    display: flex; flex-direction: column;
-    align-items: center; gap: 3px;
-    transition: all 0.2s;
-  }
-
-  .nav-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
-  .nav-btn span:first-child { font-size: 18px; }
-
-  /* ── Toast ── */
-  .toast {
-    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-    background: var(--green); color: #000;
-    font-weight: 600; font-size: 13px;
-    padding: 10px 20px; border-radius: 100px;
-    opacity: 0; transition: opacity 0.3s;
-    pointer-events: none; white-space: nowrap;
-    z-index: 999;
-  }
-  .toast.show { opacity: 1; }
+body { padding-bottom: 70px; }
 </style>
 </head>
 <body>
 
 <!-- Header -->
-<header>
-  <div class="header-inner">
-    <div class="logo">🛍️ DealHunter <span>AI</span></div>
-    <div style="font-size:11px; color:var(--muted);">Powered by AI</div>
+<div class="header">
+  <div class="header-top">
+    <div class="logo">🛍 DealHunter</div>
+    <div class="header-badge" id="dealCount">Loading...</div>
   </div>
   <div class="search-wrap">
-    <span class="search-icon">🔍</span>
-    <input
-      class="search-input"
-      id="searchInput"
-      type="text"
-      placeholder="Search any product..."
-      autocomplete="off"
-    />
-    <button class="search-btn" onclick="doSearch()">Search</button>
+    <input class="search-input" id="searchInput" placeholder="Search any product..." type="text">
+    <span class="search-icon" onclick="doSearch()">🔍</span>
   </div>
-</header>
-
-<!-- Category Chips -->
-<div class="chips-wrap" id="chips">
-  <div class="chip active" onclick="selectChip(this,'All')">🔥 All</div>
-  <div class="chip" onclick="selectChip(this,'Electronics')">💻 Electronics</div>
-  <div class="chip" onclick="selectChip(this,'HomeAndKitchen')">🏠 Home</div>
-  <div class="chip" onclick="selectChip(this,'VideoGames')">🎮 Gaming</div>
-  <div class="chip" onclick="selectChip(this,'Apparel')">👗 Fashion</div>
-  <div class="chip" onclick="selectChip(this,'Beauty')">💄 Beauty</div>
-  <div class="chip" onclick="selectChip(this,'Books')">📚 Books</div>
-  <div class="chip" onclick="selectChip(this,'SportingGoods')">⚽ Sports</div>
 </div>
 
-<!-- Main Content -->
-<main id="mainContent">
-
-  <!-- Stats Banner -->
-  <div class="stats-banner">
-    <div class="stat-card">
-      <div class="stat-value" id="statDeals">—</div>
-      <div class="stat-label">Deals Found</div>
+<!-- HOME PAGE -->
+<div class="page active" id="homePage">
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-chip">
+      <div class="stat-val" id="statDeals">—</div>
+      <div class="stat-label">Today's Deals</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-value" id="statSavings">—</div>
-      <div class="stat-label">Avg. Discount</div>
+    <div class="stat-chip">
+      <div class="stat-val" id="statMax">—</div>
+      <div class="stat-label">Max Discount</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-value" id="statTop">—</div>
-      <div class="stat-label">Top Deal</div>
+    <div class="stat-chip">
+      <div class="stat-val" id="statCats">—</div>
+      <div class="stat-label">Categories</div>
     </div>
   </div>
 
+  <!-- Hot Deals Banner -->
+  <div class="hot-banner" onclick="loadAllDeals()">
+    <div class="hot-banner-icon">🔥</div>
+    <div class="hot-banner-text">
+      <h3>Today's Hot Deals</h3>
+      <p>Fresh from our deals channel</p>
+    </div>
+    <div class="hot-banner-arrow">›</div>
+  </div>
+
+  <!-- Categories -->
   <div class="section-title">
-    <span>🤖</span> AI-Ranked Deals
+    Browse by Category
+    <span id="catSubtitle"></span>
   </div>
-
-  <!-- Deals Container -->
-  <div class="deals-grid" id="dealsGrid">
-    <div class="loading">
-      <div class="spinner"></div>
-      <div class="loading-text">Finding best deals for you...</div>
-    </div>
+  <div class="cat-grid" id="catGrid">
+    <!-- Filled dynamically -->
   </div>
-
-</main>
-
-<!-- Bottom Navigation -->
-<div class="bottom-bar">
-  <button class="nav-btn active" id="navDeals" onclick="switchTab('deals')">
-    <span>🔥</span><span>Deals</span>
-  </button>
-  <button class="nav-btn" id="navSearch" onclick="switchTab('search')">
-    <span>🔍</span><span>Search</span>
-  </button>
-  <button class="nav-btn" id="navAlerts" onclick="switchTab('alerts')">
-    <span>🔔</span><span>Alerts</span>
-  </button>
-  <button class="nav-btn" id="navInfo" onclick="switchTab('info')">
-    <span>❓</span><span>How It Works</span>
-  </button>
 </div>
 
-<!-- Toast Notification -->
-<div class="toast" id="toast"></div>
+<!-- DEALS PAGE -->
+<div class="page" id="dealsPage">
+  <button class="back-btn" onclick="goHome()">‹ Back</button>
+  <div class="section-title" id="dealsTitle">Deals</div>
+  <div id="errorBanners"></div>
+  <div class="deals-grid" id="dealsGrid"></div>
+</div>
+
+<!-- SEARCH PAGE -->
+<div class="page" id="searchPage">
+  <button class="back-btn" onclick="goHome()">‹ Back</button>
+  <div class="section-title" id="searchTitle">Search Results</div>
+  <div class="deals-grid" id="searchGrid"></div>
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <button class="nav-btn active" id="navHome" onclick="goHome()">
+    <span class="nav-icon">🏠</span>Home
+  </button>
+  <button class="nav-btn" id="navDeals" onclick="loadAllDeals()">
+    <span class="nav-icon">🔥</span>Hot Deals
+  </button>
+  <button class="nav-btn" id="navSearch" onclick="focusSearch()">
+    <span class="nav-icon">🔍</span>Search
+  </button>
+</div>
 
 <script>
-// ─── Config ──────────────────────────────────────────────────────────────────
 const BACKEND = 'https://web-production-8d6c4.up.railway.app';
-let currentCategory = 'All';
-let currentTab = 'deals';
-
-// ─── Telegram WebApp Init ─────────────────────────────────────────────────────
 const tg = window.Telegram?.WebApp;
-if (tg) {
-  tg.ready();
-  tg.expand();
-  tg.setHeaderColor('#0a0a0f');
-  tg.setBackgroundColor('#0a0a0f');
+if (tg) { tg.ready(); tg.expand(); }
+
+// Category config: hashtag → emoji + color
+const CAT_CONFIG = {
+  'Electronics':        { icon: '💻', color: '#00b4d8' },
+  'Clothing':           { icon: '👗', color: '#ff6b9d' },
+  'ClothingShoesJewelry':{ icon: '👠', color: '#ff6b9d' },
+  'HomeKitchen':        { icon: '🏠', color: '#00d68f' },
+  'Home':               { icon: '🏠', color: '#00d68f' },
+  'Kitchen':            { icon: '🍳', color: '#00d68f' },
+  'Toys':               { icon: '🧸', color: '#ffd700' },
+  'ToysGames':          { icon: '🎮', color: '#ffd700' },
+  'BabyProducts':       { icon: '👶', color: '#ff9500' },
+  'Beauty':             { icon: '💄', color: '#ff6b9d' },
+  'BeautyPersonalCare': { icon: '✨', color: '#ff6b9d' },
+  'Sports':             { icon: '⚽', color: '#00d68f' },
+  'SportsOutdoors':     { icon: '🏕️', color: '#00d68f' },
+  'Automotive':         { icon: '🚗', color: '#6b6bff' },
+  'Books':              { icon: '📚', color: '#ffd700' },
+  'PetSupplies':        { icon: '🐾', color: '#ff9500' },
+  'MusicalInstruments': { icon: '🎵', color: '#9b59b6' },
+  'OfficeProducts':     { icon: '💼', color: '#6b6bff' },
+  'Garden':             { icon: '🌿', color: '#00d68f' },
+  'Health':             { icon: '💊', color: '#00d68f' },
+  'Tools':              { icon: '🔧', color: '#95a5a6' },
+};
+
+function getCatConfig(tag) {
+  if (!tag) return { icon: '🏷️', color: '#ff4d00' };
+  // Try exact match first
+  for (const [k, v] of Object.entries(CAT_CONFIG)) {
+    if (tag.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(tag.toLowerCase())) {
+      return v;
+    }
+  }
+  return { icon: '🏷️', color: '#ff4d00' };
 }
 
-// ─── Init ─────────────────────────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', () => {
-  const params = new URLSearchParams(window.location.search);
-  const q      = params.get('q');
-  const cat    = params.get('category');
+let allDeals = [];
+let categories = {};
 
-  if (q) {
-    document.getElementById('searchInput').value = q;
-    loadDeals(q, currentCategory);
-  } else if (cat === 'hot' || cat === 'flash') {
-    loadHotDeals();
-  } else {
-    loadHotDeals();
-  }
-
-  // Search on Enter
-  document.getElementById('searchInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') doSearch();
-  });
-});
-
-// ─── Load Hot Deals ───────────────────────────────────────────────────────────
-async function loadHotDeals() {
-  showLoading();
+async function init() {
   try {
-    const res   = await fetch(`${BACKEND}/hot-deals`);
-    const data  = await res.json();
-    renderDeals(data.deals || []);
-  } catch {
-    // If backend not reachable, show mock
-    renderDeals(getMockDeals());
+    const res = await fetch(`${BACKEND}/hot-deals`);
+    const data = await res.json();
+    allDeals = data.deals || [];
+
+    // Build categories from hashtags
+    categories = {};
+    allDeals.forEach(d => {
+      const cat = d.category || 'Other';
+      if (!categories[cat]) categories[cat] = [];
+      categories[cat].push(d);
+    });
+
+    // Stats
+    const maxDisc = Math.max(...allDeals.map(d => d.discount_percent || 0));
+    document.getElementById('statDeals').textContent = allDeals.length;
+    document.getElementById('statMax').textContent = maxDisc + '%';
+    document.getElementById('statCats').textContent = Object.keys(categories).length;
+    document.getElementById('dealCount').textContent = `${allDeals.length} deals today`;
+    document.getElementById('catSubtitle').textContent = `${Object.keys(categories).length} categories`;
+
+    renderCategoryGrid();
+  } catch(e) {
+    document.getElementById('dealCount').textContent = 'Error loading';
   }
 }
 
-// ─── Search ───────────────────────────────────────────────────────────────────
-function doSearch() {
+function renderCategoryGrid() {
+  const grid = document.getElementById('catGrid');
+  const sorted = Object.entries(categories).sort((a, b) => b[1].length - a[1].length);
+
+  // Add "All" card first
+  const allCfg = { icon: '🔥', color: '#ff4d00' };
+  grid.innerHTML = `
+    <div class="cat-card active" style="--cat-color:${allCfg.color}" onclick="loadAllDeals()" id="catAll">
+      <span class="cat-icon">${allCfg.icon}</span>
+      <div class="cat-name">All Deals</div>
+      <div class="cat-count">${allDeals.length}</div>
+    </div>
+  ` + sorted.map(([cat, deals]) => {
+    const cfg = getCatConfig(cat);
+    return `
+      <div class="cat-card" style="--cat-color:${cfg.color}" onclick="loadCategory('${cat}')">
+        <span class="cat-icon">${cfg.icon}</span>
+        <div class="cat-name">${cat.replace(/([A-Z])/g, ' $1').trim()}</div>
+        <div class="cat-count">${deals.length}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function loadCategory(cat) {
+  const deals = categories[cat] || [];
+  const cfg = getCatConfig(cat);
+  showDealsPage(deals, `${cfg.icon} ${cat.replace(/([A-Z])/g, ' $1').trim()}`);
+}
+
+function loadAllDeals() {
+  showDealsPage(allDeals, '🔥 Hot Deals');
+}
+
+function showDealsPage(deals, title) {
+  showPage('dealsPage');
+  setNav('navDeals');
+  document.getElementById('dealsTitle').textContent = title;
+
+  // Price error banner
+  const errors = deals.filter(d => d.is_price_error);
+  const banners = document.getElementById('errorBanners');
+  banners.innerHTML = errors.length
+    ? `<div class="error-banner">🔥 <strong>${errors.length} PRICE ERROR${errors.length>1?'S':''}</strong> — Grab them before they fix it!</div>`
+    : '';
+
+  renderDeals(deals, 'dealsGrid');
+}
+
+function renderDeals(deals, gridId) {
+  const grid = document.getElementById(gridId);
+  if (!deals.length) {
+    grid.innerHTML = `<div class="empty"><div class="empty-icon">😕</div><h3>No deals found</h3><p>Check back soon!</p></div>`;
+    return;
+  }
+  grid.innerHTML = deals.map((deal, i) => {
+    const cfg = getCatConfig(deal.category);
+    const img = deal.image_url
+      ? `<img class="deal-img" src="${deal.image_url}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      : '';
+    return `
+    <a class="deal-card" href="${deal.affiliate_url}" target="_blank" style="animation-delay:${i*0.05}s">
+      <div class="deal-img-wrap">
+        ${img}
+        <div class="deal-img-placeholder" style="${deal.image_url ? 'display:none' : ''}">${cfg.icon}</div>
+      </div>
+      <div class="deal-body">
+        <div class="deal-badges">
+          ${deal.is_price_error ? '<span class="badge badge-error">🔥 PRICE ERROR</span>' : ''}
+          ${deal.is_prime ? '<span class="badge badge-prime">✦ PRIME</span>' : ''}
+          ${deal.category ? `<span class="badge badge-cat">#${deal.category}</span>` : ''}
+        </div>
+        <div class="deal-title">${deal.title || 'Amazon Deal'}</div>
+        <div class="deal-price-row">
+          ${deal.price ? `<span class="deal-price">$${Number(deal.price).toFixed(2)}</span>` : ''}
+          ${deal.original_price ? `<span class="deal-original">$${Number(deal.original_price).toFixed(2)}</span>` : ''}
+          ${deal.discount_percent ? `<span class="deal-discount">-${deal.discount_percent}%</span>` : ''}
+        </div>
+        <div class="deal-meta">
+          ${deal.rating ? `⭐ ${deal.rating}` : ''}
+          ${deal.review_count ? `(${Number(deal.review_count).toLocaleString()})` : ''}
+          ${deal.ai_score != null ? `<span class="ai-chip">🤖 ${Number(deal.ai_score).toFixed(1)}</span>` : ''}
+        </div>
+      </div>
+    </a>`;
+  }).join('');
+}
+
+async function doSearch() {
   const q = document.getElementById('searchInput').value.trim();
   if (!q) return;
-  loadDeals(q, currentCategory);
-}
 
-async function loadDeals(query, category = 'All') {
-  showLoading();
-  try {
-    const url  = `${BACKEND}/search?q=${encodeURIComponent(query)}&category=${category}&limit=15`;
-    const res  = await fetch(url);
-    const data = await res.json();
-    renderDeals(data.deals || []);
-  } catch {
-    renderDeals(getMockDeals(query));
-  }
-}
+  showPage('searchPage');
+  setNav('navSearch');
+  document.getElementById('searchTitle').textContent = `🔍 "${q}"`;
+  document.getElementById('searchGrid').innerHTML = `
+    <div class="skel-card skeleton"></div>
+    <div class="skel-card skeleton"></div>
+    <div class="skel-card skeleton"></div>
+  `;
 
-// ─── Render Deals ─────────────────────────────────────────────────────────────
-function renderDeals(deals) {
-  const grid = document.getElementById('dealsGrid');
+  // First search locally in allDeals
+  const local = allDeals.filter(d =>
+    d.title && d.title.toLowerCase().includes(q.toLowerCase())
+  );
 
-  if (!deals || deals.length === 0) {
-    grid.innerHTML = `
-      <div class="empty">
-        <div class="empty-icon">🔍</div>
-        <div class="empty-title">No Deals Found</div>
-        <div class="empty-sub">Try a different search term or category</div>
-      </div>`;
+  if (local.length) {
+    renderDeals(local, 'searchGrid');
     return;
   }
 
-  // Update stats
-  const avgDiscount = Math.round(deals.reduce((s,d) => s + (d.discount_percent||0), 0) / deals.length);
-  const topDeal     = Math.max(...deals.map(d => d.discount_percent || 0));
-  document.getElementById('statDeals').textContent    = deals.length;
-  document.getElementById('statSavings').textContent  = `${avgDiscount}%`;
-  document.getElementById('statTop').textContent      = `${topDeal}%`;
-
-  grid.innerHTML = deals.map((deal, i) => `
-    <a class="deal-card" href="${deal.affiliate_url}" target="_blank"
-       style="animation-delay:${i * 0.06}s"
-       onclick="trackClick('${deal.asin}')">
-      <img class="deal-img"
-           src="${deal.image_url || 'https://via.placeholder.com/84x84?text=📦'}"
-           alt="${deal.title}"
-           onerror="this.src='https://via.placeholder.com/84x84?text=📦'">
-      <div class="deal-info">
-        <div class="deal-title">${deal.title}</div>
-        <div class="deal-pricing">
-          <span class="deal-price">$${Number(deal.price).toFixed(2)}</span>
-          ${deal.original_price > deal.price
-            ? `<span class="deal-original">$${Number(deal.original_price).toFixed(2)}</span>`
-            : ''}
-          ${deal.discount_percent
-            ? `<span class="deal-badge">-${deal.discount_percent}%</span>`
-            : ''}
-        </div>
-        <div class="deal-meta">
-          ${deal.is_price_error ? '<span style="color:#e74c3c;font-weight:700">🔥 PRICE ERROR</span>' : ''}
-          ${deal.is_prime ? '<span style="color:#00a8e1;font-size:11px">✦ PRIME</span>' : ''}
-          ${deal.rating ? `⭐ ${deal.rating}` : ''}
-          ${deal.review_count ? `(${Number(deal.review_count).toLocaleString()})` : ''}
-          ${deal.ai_score != null
-            ? `<span class="ai-score">🤖 ${Number(deal.ai_score).toFixed(1)}/10</span>`
-            : ''}
-        </div>
-        ${deal.ai_summary
-          ? `<div class="deal-summary">${deal.ai_summary}</div>`
-          : ''}
-      </div>
-    </a>
-  `).join('');
+  // Then search via backend
+  try {
+    const res = await fetch(`${BACKEND}/search?q=${encodeURIComponent(q)}&limit=10`);
+    const data = await res.json();
+    renderDeals(data.deals || [], 'searchGrid');
+  } catch(e) {
+    document.getElementById('searchGrid').innerHTML =
+      `<div class="empty"><div class="empty-icon">⚠️</div><h3>Connection Error</h3></div>`;
+  }
 }
 
-// ─── Helper Functions ─────────────────────────────────────────────────────────
-function showLoading() {
-  document.getElementById('dealsGrid').innerHTML = `
-    <div class="loading">
-      <div class="spinner"></div>
-      <div class="loading-text">AI is analyzing deals...</div>
-    </div>`;
-  document.getElementById('statDeals').textContent   = '—';
-  document.getElementById('statSavings').textContent = '—';
-  document.getElementById('statTop').textContent     = '—';
+document.getElementById('searchInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSearch();
+});
+
+function focusSearch() {
+  document.getElementById('searchInput').focus();
+  setNav('navSearch');
 }
 
-function selectChip(el, category) {
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  currentCategory = category;
-  const q = document.getElementById('searchInput').value.trim();
-  if (q) loadDeals(q, category); else loadHotDeals();
+function goHome() {
+  showPage('homePage');
+  setNav('navHome');
 }
 
-function trackClick(asin) {
-  showToast('Opening deal... 🛒');
-  // Could send analytics to backend here
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
 }
 
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-function switchTab(tab) {
-  currentTab = tab;
+function setNav(id) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(`nav${tab.charAt(0).toUpperCase()+tab.slice(1)}`).classList.add('active');
-
-  if (tab === 'deals')  loadHotDeals();
-  if (tab === 'search') document.getElementById('searchInput').focus();
-  if (tab === 'alerts') showToast('Set alerts via the bot! 🔔');
-  if (tab === 'info')   showInfoModal();
+  document.getElementById(id)?.classList.add('active');
 }
 
-function showInfoModal() {
-  document.getElementById('dealsGrid').innerHTML = `
-    <div class="empty">
-      <div class="empty-icon">🤖</div>
-      <div class="empty-title">How DealHunter AI Works</div>
-      <div class="empty-sub" style="margin-top:12px; line-height:1.8; text-align:left; padding: 0 8px;">
-        1️⃣ We scan thousands of Amazon products daily<br>
-        2️⃣ Our AI scores each deal on discount, reviews & value<br>
-        3️⃣ You see only the best, ranked by AI Score<br>
-        4️⃣ Click any deal to buy on Amazon instantly<br>
-        5️⃣ Set price alerts via the bot to never miss a drop<br><br>
-        <strong style="color:var(--accent2)">Completely free!</strong> — We earn a small Amazon affiliate commission when you buy.
-      </div>
-    </div>`;
-}
-
-// ─── Mock Data (Fallback) ─────────────────────────────────────────────────────
-function getMockDeals(query = 'popular') {
-  const items = [
-    { asin:'B001', title:'Wireless Noise-Canceling Headphones - Premium Sound Quality', price:49.99, original_price:99.99, discount_percent:50, rating:4.6, review_count:23451, image_url:'', ai_score:9.2, ai_summary:'Exceptional value — premium ANC at half price with stellar reviews.' },
-    { asin:'B002', title:'Smart LED Desk Lamp with USB Charging Port - Adjustable', price:24.99, original_price:44.99, discount_percent:44, rating:4.4, review_count:8923, image_url:'', ai_score:8.1, ai_summary:'Great everyday item with solid discount and high satisfaction rate.' },
-    { asin:'B003', title:'Portable Bluetooth Speaker Waterproof 360° Sound', price:34.99, original_price:59.99, discount_percent:42, rating:4.5, review_count:15670, image_url:'', ai_score:8.7, ai_summary:'Top-rated portable speaker — waterproof feature adds excellent value.' },
-    { asin:'B004', title:'Air Fryer 6QT Large Capacity Digital Touch Screen', price:79.99, original_price:139.99, discount_percent:43, rating:4.7, review_count:31200, image_url:'', ai_score:9.4, ai_summary:'Best-in-class air fryer at a record low price — highest rated in category.' },
-    { asin:'B005', title:'Fitness Tracker Smart Watch with Heart Rate Monitor', price:39.99, original_price:69.99, discount_percent:43, rating:4.3, review_count:9876, image_url:'', ai_score:7.9, ai_summary:'Solid budget fitness tracker with reliable heart rate monitoring.' },
-  ];
-  return items.map(d => ({ ...d, affiliate_url: `https://www.amazon.com/dp/${d.asin}?tag=demo-20` }));
-}
+init();
 </script>
 </body>
 </html>
